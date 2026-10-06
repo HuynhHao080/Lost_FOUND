@@ -1,0 +1,13 @@
+
+> lost-found@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.215.199.33:3000
+- Environments: .env.local
+✓ Ready in 552ms
+✓ Running next.config.ts took 40ms
+
+ GET / 200 in 3.9s (next.js: 2.4s, proxy.ts: 168ms, application-code: 1295ms)
+^C^C

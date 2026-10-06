@@ -1,0 +1,24 @@
+
+> lost-found@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.215.199.33:3000
+- Environments: .env.local
+✓ Ready in 569ms
+✓ Running next.config.ts took 39ms
+
+ GET / 200 in 4.5s (next.js: 3.0s, proxy.ts: 210ms, application-code: 1282ms)
+ GET /api/reports/7479ded9-4357-496e-a9dd-4c4fe4cce44f/image 302 in 3.7s (next.js: 2.6s, application-code: 1078ms)
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.215.199.33:3000
+- Environments: .env.local
+✓ Ready in 500ms
+✓ Running next.config.ts took 42ms
+⚠ Turbopack's filesystem cache has been deleted as the result of a user request. Builds or page loads may be slower as a result.
+
+ GET / 200 in 3.8s (next.js: 2.4s, proxy.ts: 14ms, application-code: 1316ms)
+ GET / 200 in 681ms (next.js: 48ms, proxy.ts: 24ms, application-code: 609ms)
+^C
