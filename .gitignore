@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dependencies in nested projects
+**/node_modules/
+
+# AWS CDK generated output
+/cdk.out/
+
+# Local development logs
+*.log
