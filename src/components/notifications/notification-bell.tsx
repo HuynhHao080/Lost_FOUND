@@ -10,7 +10,7 @@ import {
   type AppNotification,
 } from "@/lib/api/notifications";
 import { ApiError } from "@/lib/api/reports";
-import { Bell, CheckCheck, UserPlus2, Unlink, PartyPopper, Inbox, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, UserPlus2, Unlink, PartyPopper, Inbox, Loader2, ImageIcon } from "lucide-react";
 
 const typeIcon: Record<AppNotification["type"], React.ReactNode> = {
   MATCH_CONFIRMED: (
@@ -20,16 +20,19 @@ const typeIcon: Record<AppNotification["type"], React.ReactNode> = {
   REPORT_RESOLVED: (
     <PartyPopper className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
   ),
+  IMAGE_UPLOADED: (
+    <ImageIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+  ),
 };
 
 function timeAgo(iso: string): string {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return "vừa xong";
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return `${minutes} phút trước`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (hours < 24) return `${hours} giờ trước`;
+  return new Date(iso).toLocaleDateString("vi-VN", { month: "short", day: "numeric" });
 }
 
 /**
@@ -61,7 +64,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
     } catch (err) {
       if (token !== requestToken.current) return;
       if (!(err instanceof ApiError && err.status === 401)) {
-        setError("Could not load notifications.");
+        setError("Không tải được thông báo.");
       }
     } finally {
       if (token === requestToken.current) setLoading(false);
@@ -69,22 +72,11 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
   }, []);
 
   // Initial load + reload whenever a lifecycle action happens elsewhere
+  /* eslint-disable react-hooks/set-state-in-effect -- load() calls setState internally; this is the intended data-fetching pattern */
   useEffect(() => {
-    let cancelled = false;
-    fetchNotifications()
-      .then((data) => {
-        if (!cancelled) {
-          setNotifications(data.notifications);
-          setUnreadCount(data.unreadCount);
-        }
-      })
-      .catch(() => {
-        /* silent — bell badge is non-critical */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
+    load();
+  }, [refreshKey, load]);
+  /* eslint-enable */
 
   // Lifecycle actions (confirm/unmatch/resolve) dispatch this window event so
   // the bell refreshes without a page reload, even though it's a sibling of
@@ -153,7 +145,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
         variant="ghost"
         size="icon"
         onClick={handleOpen}
-        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+        aria-label={`Thông báo${unreadCount > 0 ? `, ${unreadCount} chưa đọc` : ""}`}
         aria-expanded={open}
         aria-haspopup="true"
       >
@@ -171,15 +163,15 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
       {open && (
         <div
           role="dialog"
-          aria-label="Notifications"
+          aria-label="Thông báo"
           className="absolute right-0 z-50 mt-2 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-xl border bg-card shadow-lg"
         >
           <div className="flex items-center justify-between border-b px-3 py-2">
-            <p className="text-sm font-semibold">Notifications</p>
+            <p className="text-sm font-semibold">Thông báo</p>
             {unreadCount > 0 && (
               <Button variant="ghost" size="sm" onClick={handleMarkAllRead} disabled={markingAll}>
                 <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                Mark all read
+                Đánh dấu tất cả đã đọc
               </Button>
             )}
           </div>
@@ -191,7 +183,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
                 className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground"
               >
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Loading...
+                Đang tải...
               </div>
             ) : error ? (
               <p role="alert" className="px-3 py-6 text-center text-sm text-destructive">
@@ -200,9 +192,9 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center gap-1.5 py-8 text-center">
                 <Inbox className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm font-medium">No notifications</p>
+                <p className="text-sm font-medium">Chưa có thông báo</p>
                 <p className="px-6 text-xs text-muted-foreground">
-                  You&apos;ll see updates here when something happens to your reports.
+                  Bạn sẽ nhận thông báo khi có cập nhật về tin báo của bạn.
                 </p>
               </div>
             ) : (
@@ -213,7 +205,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
                       href={`/reports/${n.reportId}`}
                       onClick={() => handleClickNotification(n)}
                       className={`flex items-start gap-2.5 border-b px-3 py-2.5 transition-colors last:border-b-0 hover:bg-muted/50 ${
-                        !n.readAt ? "bg-primary/[0.04]" : ""
+                        !n.readAt ? "bg-primary/4" : ""
                       }`}
                     >
                       <span className="mt-0.5 shrink-0">{typeIcon[n.type]}</span>
@@ -222,7 +214,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
                           {!n.readAt && (
                             <span
                               className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                              aria-label="Unread"
+                              aria-label="Chưa đọc"
                             />
                           )}
                           <span className="truncate text-xs font-medium">{n.title}</span>
@@ -230,7 +222,7 @@ export function NotificationBell({ refreshKey = 0 }: { refreshKey?: number }) {
                             {timeAgo(n.createdAt)}
                           </span>
                         </span>
-                        <span className="mt-0.5 line-clamp-2 block break-words text-xs text-muted-foreground">
+                        <span className="mt-0.5 line-clamp-2 block wrap-break-word text-xs text-muted-foreground">
                           {n.message}
                         </span>
                       </span>

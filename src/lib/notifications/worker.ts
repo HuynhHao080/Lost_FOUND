@@ -9,7 +9,6 @@
  * run `node scripts/notification-worker.mjs`.
  */
 
-import "server-only";
 import { getPendingOutboxEvents, markOutboxPublished } from "@/lib/aws/outbox";
 import { analyzeImage } from "@/lib/aws/rekognition";
 import { REPORTS_BUCKET } from "@/lib/aws/s3";
@@ -77,6 +76,10 @@ export async function processBatch(): Promise<{ processed: number; hasMore: bool
   }
   return { processed: events.length, hasMore: Boolean(lastKey) };
 }
+
+export const handler = async (): Promise<void> => {
+  await processBatch();
+};
 
 // Only auto-run when executed directly (Lambda imports this module
 // without running it; `next build` must never spawn a worker loop).

@@ -43,7 +43,7 @@ export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus];
  * absent so the client can simply omit the field or send "".
  */
 export const DateSchema = z.string().refine((val) => val === "" || !isNaN(Date.parse(val)), {
-  message: "Invalid date format",
+  message: "Ngày không hợp lệ",
 });
 
 /**
@@ -62,15 +62,15 @@ export const ReportSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "Title is required")
-    .max(200, "Title must be 200 characters or less"),
-  description: z.string().max(2000, "Description must be 2000 characters or less").optional(),
+    .min(1, "Vui lòng nhập tiêu đề")
+    .max(200, "Tiêu đề tối đa 200 ký tự"),
+  description: z.string().max(2000, "Mô tả tối đa 2000 ký tự").optional(),
   category: z.enum(["Electronics", "Wallet", "Keys", "Bag", "Document", "Clothing", "Other"]),
   location: z
     .string()
     .trim()
-    .min(1, "Location is required")
-    .max(500, "Location must be 500 characters or less"),
+    .min(1, "Vui lòng nhập địa điểm")
+    .max(500, "Địa điểm tối đa 500 ký tự"),
   // Must parse as a real date when provided (empty string treated as absent)
   dateOccurred: DateSchema.optional(),
 });

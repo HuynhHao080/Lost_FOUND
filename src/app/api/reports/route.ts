@@ -48,14 +48,14 @@ export async function POST(request: NextRequest) {
   // Check authentication
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   // Validate DynamoDB configuration
   try {
     validateDynamoConfig();
   } catch {
-    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi cấu hình máy chủ" }, { status: 500 });
   }
 
   // Parse and validate request body
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     input = validateReport(body);
   } catch (err) {
-    const error = err instanceof Error ? err.message : "Invalid request body";
+    const error = err instanceof Error ? err.message : "Dữ liệu không hợp lệ";
     return NextResponse.json({ error }, { status: 400 });
   }
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       httpStatus: e?.$metadata?.httpStatusCode,
     });
     // Don't leak internal error details
-    return NextResponse.json({ error: "Failed to create report" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể tạo tin báo" }, { status: 500 });
   }
 }
 
@@ -100,21 +100,21 @@ export async function GET(request: NextRequest) {
   // Check authentication
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   // Validate DynamoDB configuration
   try {
     validateDynamoConfig();
   } catch {
-    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi cấu hình máy chủ" }, { status: 500 });
   }
 
   // Parse query parameters — reject non-numeric limits rather than passing NaN
   const url = new URL(request.url);
   const rawLimit = Number.parseInt(url.searchParams.get("limit") ?? "50", 10);
   if (Number.isNaN(rawLimit) || rawLimit < 1) {
-    return NextResponse.json({ error: "Invalid limit parameter" }, { status: 400 });
+    return NextResponse.json({ error: "Tham số giới hạn không hợp lệ" }, { status: 400 });
   }
   const limit = Math.min(rawLimit, 100);
 
@@ -128,6 +128,6 @@ export async function GET(request: NextRequest) {
     });
   } catch {
     // Don't leak internal error details
-    return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
+    return NextResponse.json({ error: "Không tải được tin báo" }, { status: 500 });
   }
 }

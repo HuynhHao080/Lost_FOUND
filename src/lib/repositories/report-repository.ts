@@ -27,6 +27,7 @@ export interface Report {
   imageUrl?: string;
   imageLabels?: string[];
   moderationLabels?: string[];
+  imageAnalysisStatus?: "PENDING" | "PROCESSING" | "COMPLETED" | "NO_LABELS" | "FAILED";
   matchedReportId?: string;
   matchedAt?: string;
   resolvedAt?: string;
@@ -93,10 +94,67 @@ export async function updateReportImage(id: string, imageKey: string): Promise<R
   return (result.Attributes as Report | undefined) ?? null;
 }
 
+/** Editable content fields a report owner may update. */
+export interface ReportContentPatch {
+  title?: string;
+  description?: string;
+  category?: string;
+  location?: string;
+  dateOccurred?: string;
+}
+
+/**
+ * Updates the editable content fields of a report (owner-only at the route
+ * layer). Only the provided fields are written; status, type, userId and
+ * timestamps other than updatedAt are never touched.
+ */
+export async function updateReportContent(
+  id: string,
+  patch: ReportContentPatch,
+): Promise<Report | null> {
+  const now = new Date().toISOString();
+  const sets: string[] = ["updatedAt = :now"];
+  const values: Record<string, unknown> = { ":now": now };
+
+  if (patch.title !== undefined) {
+    sets.push("title = :title");
+    values[":title"] = patch.title;
+  }
+  if (patch.description !== undefined) {
+    sets.push("description = :description");
+    values[":description"] = patch.description;
+  }
+  if (patch.category !== undefined) {
+    sets.push("category = :category");
+    values[":category"] = patch.category;
+  }
+  if (patch.location !== undefined) {
+    sets.push("location = :location");
+    values[":location"] = patch.location;
+  }
+  if (patch.dateOccurred !== undefined) {
+    sets.push("dateOccurred = :dateOccurred");
+    values[":dateOccurred"] = patch.dateOccurred;
+  }
+
+  const result = await dynamoDb.send(
+    new UpdateCommand({
+      TableName: REPORTS_TABLE,
+      Key: { PK: `REPORT#${id}`, SK: `REPORT#${id}` },
+      UpdateExpression: `SET ${sets.join(", ")}`,
+      ConditionExpression: "attribute_exists(PK)",
+      ExpressionAttributeValues: values,
+      ReturnValues: "ALL_NEW",
+    }),
+  );
+  return (result.Attributes as Report | undefined) ?? null;
+}
+
 /**
  * Lists a user's own reports, newest first, via GSI1 (GSI1PK = USER#<id>).
- * Reports share the GSI1 partition with notifications/outbox rows, so an
- * entity filter excludes them: report items carry no `entity` attribute.
+ * Reports share the GSI1 partition with notifications/outbox rows.
+ * Reports have SK starting with REPORT#; notifications have SK starting with NOTIF#.
+ * We filter by SK prefix to ensure only reports are returned.
  */
 export async function getReportsByUser(
   userId: string,
@@ -107,9 +165,11 @@ export async function getReportsByUser(
     TableName: REPORTS_TABLE,
     IndexName: "GSI1",
     KeyConditionExpression: "GSI1PK = :user",
-    FilterExpression: "attribute_not_exists(#entity)",
-    ExpressionAttributeNames: { "#entity": "entity" },
-    ExpressionAttributeValues: { ":user": `USER#${userId}` },
+    FilterExpression: "begins_with(SK, :reportPrefix)",
+    ExpressionAttributeValues: {
+      ":user": `USER#${userId}`,
+      ":reportPrefix": "REPORT#",
+    },
     ScanIndexForward: false,
     Limit: limit,
   };
@@ -135,11 +195,12 @@ export async function updateImageAnalysis(
     new UpdateCommand({
       TableName: REPORTS_TABLE,
       Key: { PK: `REPORT#${id}`, SK: `REPORT#${id}` },
-      UpdateExpression: "SET imageLabels = :labels, moderationLabels = :mod, updatedAt = :now",
+      UpdateExpression: "SET imageLabels = :labels, moderationLabels = :mod, imageAnalysisStatus = :status, updatedAt = :now",
       ConditionExpression: "attribute_exists(PK)",
       ExpressionAttributeValues: {
         ":labels": labels,
         ":mod": moderationLabels ?? [],
+        ":status": labels.length > 0 || (moderationLabels?.length ?? 0) > 0 ? "COMPLETED" : "NO_LABELS",
         ":now": now,
       },
       ReturnValues: "ALL_NEW",
@@ -333,6 +394,11 @@ export async function searchPublicReports(
   const filterParts: string[] = [];
   const values: Record<string, unknown> = {};
 
+  // Always filter to only report items (SK starts with REPORT#)
+  // This excludes notifications (NOTIF#) and outbox events from the same table.
+  filterParts.push("begins_with(SK, :reportPrefix)");
+  values[":reportPrefix"] = "REPORT#";
+
   if (filters.type) {
     filterParts.push("#type = :type");
     values[":type"] = filters.type;
@@ -365,9 +431,9 @@ export async function searchPublicReports(
 
   const params: ScanCommandInput = {
     TableName: REPORTS_TABLE,
-    FilterExpression: filterParts.length > 0 ? filterParts.join(" AND ") : undefined,
-    ExpressionAttributeValues: Object.keys(values).length > 0 ? values : undefined,
-    ExpressionAttributeNames: Object.keys(values).length > 0 ? names : undefined,
+    FilterExpression: filterParts.join(" AND "),
+    ExpressionAttributeValues: values,
+    ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
     Limit: limit,
   };
 

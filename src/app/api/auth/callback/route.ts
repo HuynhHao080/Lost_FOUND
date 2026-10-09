@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error: error,
-        error_description: errorDescription || "Authentication failed",
+        error_description: errorDescription || "Đăng nhập thất bại",
       },
       { status: 400 },
     );
@@ -21,13 +21,13 @@ export async function GET(request: Request) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json({ error: "Authorization code not found" }, { status: 400 });
+    return NextResponse.json({ error: "Không tìm thấy mã ủy quyền" }, { status: 400 });
   }
 
   // Validate client secret is configured
   if (!COGNITO_CONFIG.clientSecret) {
     return NextResponse.json(
-      { error: "Server configuration error: COGNITO_CLIENT_SECRET is not set" },
+      { error: "Lỗi cấu hình máy chủ: chưa đặt COGNITO_CLIENT_SECRET" },
       { status: 500 },
     );
   }
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
 
     if (!tokenResponse.ok) {
       // Sanitize error response to avoid leaking sensitive info
-      return NextResponse.json({ error: "Token exchange failed" }, { status: 401 });
+      return NextResponse.json({ error: "Không đổi được mã truy cập, vui lòng đăng nhập lại" }, { status: 401 });
     }
 
     const tokens = await tokenResponse.json();
@@ -98,7 +98,7 @@ export async function GET(request: Request) {
 
     return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Authentication failed";
+    const message = error instanceof Error ? error.message : "Đăng nhập thất bại";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

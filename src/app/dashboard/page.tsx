@@ -16,15 +16,15 @@ export default async function DashboardPage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Authentication required</CardTitle>
+            <CardTitle>Cần đăng nhập</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-muted-foreground">
-              You need to sign in to access your dashboard.
+              Bạn cần đăng nhập để xem bảng điều khiển của mình.
             </p>
             <form action="/api/auth/login" className="w-full">
               <Button type="submit" className="w-full">
-                Sign In
+                Đăng nhập
               </Button>
             </form>
           </CardContent>
@@ -34,18 +34,18 @@ export default async function DashboardPage() {
   }
 
   const user = await getCurrentUser();
-  const firstName = user?.email ? user.email.split("@")[0] : "there";
+  const firstName = user?.email ? user.email.split("@")[0] : "";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95">
+      <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/95">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary p-2">
               <Search className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
             </div>
-            <span className="font-bold text-xl">Lost &amp; Found</span>
+            <span className="font-bold text-xl">Tìm Đồ Thất Lạc</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
               href="/reports"
               className="hidden sm:inline text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Browse Lost &amp; Found
+              Xem tin báo
             </Link>
             <NotificationBell />
             {user?.email && (
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
             <form action="/api/auth/logout">
               <Button variant="outline" size="sm" type="submit">
                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                Sign Out
+                Đăng xuất
               </Button>
             </form>
           </div>
@@ -79,9 +79,9 @@ export default async function DashboardPage() {
           {/* Welcome section */}
           <section aria-labelledby="welcome-heading">
             <h1 id="welcome-heading" className="text-3xl font-bold tracking-tight">
-              Welcome back, {firstName}
+              Chào mừng bạn trở lại{firstName !== "there" ? `, ${firstName}` : ""}
             </h1>
-            <p className="mt-1 text-muted-foreground">Manage your lost and found reports below.</p>
+            <p className="mt-1 text-muted-foreground">Quản lý tin báo mất và nhặt được của bạn bên dưới.</p>
           </section>
 
           {/* Stats + Create form + Reports list (shared client state) */}
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
 
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Lost &amp; Found. All rights reserved.
+          © {new Date().getFullYear()} Tìm Đồ Thất Lạc. Mọi quyền được bảo lưu.
         </div>
       </footer>
     </div>

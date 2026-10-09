@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lost & Found",
-  description: "Report lost items and discover potential matches with AI-assisted matching",
+  title: "Tìm Đồ Thất Lạc",
+  description: "Đăng tin đồ bị mất hoặc nhặt được và tìm lại đồ với tính năng ghép gợi ý bằng AI",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="vi"
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >

@@ -10,9 +10,10 @@ export const SearchQuerySchema = z.object({
     .enum(["Electronics", "Wallet", "Keys", "Bag", "Document", "Clothing", "Other"])
     .optional(),
   status: z.enum(["PENDING", "MATCHED", "RESOLVED", "EXPIRED"]).optional(),
-  location: z.string().trim().max(200, "Location filter too long").optional(),
-  search: z.string().trim().max(100, "Search term too long").optional(),
+  location: z.string().trim().max(200, "Bộ lọc địa điểm quá dài").optional(),
+  search: z.string().trim().max(100, "Từ khóa quá dài").optional(),
   limit: z.coerce.number().int().min(1).max(50).default(24),
+  cursor: z.string().optional(),
 });
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
@@ -20,7 +21,7 @@ export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 /**
  * Validates an id path parameter (UUID format).
  */
-export const ReportIdSchema = z.string().uuid("Invalid report id");
+export const ReportIdSchema = z.string().uuid("Mã tin báo không hợp lệ");
 
 /**
  * Parses and validates raw query params, returning null on invalid input.

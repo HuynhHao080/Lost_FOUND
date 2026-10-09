@@ -45,6 +45,8 @@ next-env.d.ts
 
 # AWS CDK generated output
 /cdk.out/
+cdk/cdk.out/
+cdk/**/cdk.out/
 
 # Local development logs
 *.log

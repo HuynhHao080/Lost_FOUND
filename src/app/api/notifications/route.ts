@@ -11,7 +11,7 @@ import { getUserNotifications, toSafeNotification } from "@/lib/repositories/not
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   // Limit is clamped server-side
@@ -32,6 +32,6 @@ export async function GET(request: NextRequest) {
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to load notifications" }, { status: 500 });
+    return NextResponse.json({ error: "Không tải được thông báo" }, { status: 500 });
   }
 }

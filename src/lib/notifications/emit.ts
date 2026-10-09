@@ -27,24 +27,24 @@ export async function notifyLifecycleEvent(
 
   const copy: Record<NotificationType, { title: string; message: (ownTitle: string, otherTitle: string) => string }> = {
     MATCH_CONFIRMED: {
-      title: "Match confirmed",
+      title: "Đã khớp kết quả phù hợp",
       message: (ownTitle: string, otherTitle: string) =>
-        `A possible match for "${ownTitle}" was confirmed with "${otherTitle}".`,
+        `Một kết quả phù hợp cho "${ownTitle}" đã được xác nhận với "${otherTitle}".`,
     },
     MATCH_RESET: {
-      title: "Match reset",
+      title: "Đã hủy ghép",
       message: (ownTitle: string, otherTitle: string) =>
-        `The match between "${ownTitle}" and "${otherTitle}" was removed. Both reports are pending again.`,
+        `Ghép giữa "${ownTitle}" và "${otherTitle}" đã bị hủy. Cả hai tin báo đã trở lại trạng thái đang tìm kiếm.`,
     },
     REPORT_RESOLVED: {
-      title: "Report resolved",
+      title: "Tin báo đã giải quyết",
       message: (ownTitle: string, otherTitle: string) =>
-        `"${ownTitle}" was resolved — matched with "${otherTitle}". Congratulations!`,
+        `"${ownTitle}" đã được giải quyết — ghép với "${otherTitle}". Chúc mừng!`,
     },
     IMAGE_UPLOADED: {
-      title: "Image analyzed",
+      title: "Phân tích hình ảnh hoàn tất",
       message: (ownTitle: string) =>
-        `Image analysis complete for "${ownTitle}". Visual labels have been added.`,
+        `Phân tích hình ảnh cho "${ownTitle}" đã hoàn tất. Các đặc điểm nhận diện đã được thêm.`,
     },
   } as const;
 

@@ -41,30 +41,30 @@ export function DashboardContent() {
       {/* Statistics */}
       <section aria-labelledby="stats-heading">
         <h2 id="stats-heading" className="sr-only">
-          Your report statistics
+          Thống kê tin báo của bạn
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           <StatCard
             icon={<FileText className="h-5 w-5" aria-hidden="true" />}
-            label="Total reports"
+            label="Tổng số tin"
             value={total}
             loading={statsLoading}
           />
           <StatCard
             icon={<PackageSearch className="h-5 w-5" aria-hidden="true" />}
-            label="Active lost"
+            label="Đang tìm (mất)"
             value={activeLost}
             loading={statsLoading}
           />
           <StatCard
             icon={<SearchIcon className="h-5 w-5" aria-hidden="true" />}
-            label="Active found"
+            label="Đang tìm (nhặt)"
             value={activeFound}
             loading={statsLoading}
           />
           <StatCard
             icon={<CheckCircle2 className="h-5 w-5" aria-hidden="true" />}
-            label="Resolved"
+            label="Đã giải quyết"
             value={resolved}
             loading={statsLoading}
           />
@@ -74,17 +74,17 @@ export function DashboardContent() {
       {/* Create Report */}
       <section aria-labelledby="create-heading">
         <h2 id="create-heading" className="mb-3 text-xl font-semibold">
-          Create a new report
+          Đăng tin mới
         </h2>
-        <CreateReportForm onCreated={refresh} />
+        <CreateReportForm onCreatedAction={refresh} />
       </section>
 
       {/* My Reports */}
       <section aria-labelledby="reports-heading">
         <h2 id="reports-heading" className="mb-3 text-xl font-semibold">
-          My reports
+          Tin báo của tôi
         </h2>
-        <ReportsList onLoaded={handleReportsChange} />
+        <ReportsList onLoadedAction={handleReportsChange} />
       </section>
     </div>
   );

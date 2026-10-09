@@ -15,13 +15,13 @@ import {
  * Validation for the presign request.
  */
 const PresignSchema = z.object({
-  reportId: z.string().uuid("Invalid report id"),
+  reportId: z.string().uuid("Mã tin báo không hợp lệ"),
   contentType: z.enum(ALLOWED_IMAGE_TYPES),
   fileSize: z
     .number()
     .int()
-    .min(1, "File is empty")
-    .max(MAX_FILE_SIZE, "File exceeds the 5 MB limit"),
+    .min(1, "Tệp đang trống")
+    .max(MAX_FILE_SIZE, "Tệp vượt quá giới hạn 5 MB"),
 });
 
 /**
@@ -37,14 +37,14 @@ export async function POST(request: NextRequest) {
   // Authentication
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   // Configuration
   try {
     validateS3Config();
   } catch {
-    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi cấu hình máy chủ" }, { status: 500 });
   }
 
   // Validate body
@@ -53,22 +53,22 @@ export async function POST(request: NextRequest) {
     const json = await request.json();
     const parsed = PresignSchema.safeParse(json);
     if (!parsed.success) {
-      const message = parsed.error.issues[0]?.message ?? "Invalid request";
+      const message = parsed.error.issues[0]?.message ?? "Yêu cầu không hợp lệ";
       return NextResponse.json({ error: message }, { status: 400 });
     }
     body = parsed.data;
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ error: "Dữ liệu không hợp lệ" }, { status: 400 });
   }
 
   try {
     // Ownership check: the report must exist and belong to the caller
     const report = await getReportById(body.reportId);
     if (!report) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy tin báo" }, { status: 404 });
     }
     if (report.userId !== user.sub) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const key = buildImageKey(body.reportId, body.contentType as AllowedImageType);
@@ -80,6 +80,6 @@ export async function POST(request: NextRequest) {
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to generate upload URL" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể tạo liên kết tải lên" }, { status: 500 });
   }
 }

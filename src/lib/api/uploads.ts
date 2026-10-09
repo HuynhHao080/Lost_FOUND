@@ -26,13 +26,13 @@ export interface PresignResponse {
  */
 export function validateImageFile(file: File): string | null {
   if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
-    return "Only JPEG, PNG, or WebP images are allowed.";
+    return "Chỉ cho phép ảnh JPEG, PNG hoặc WebP.";
   }
   if (file.size > MAX_FILE_SIZE) {
-    return "Image must be 5 MB or smaller.";
+    return "Ảnh phải từ 5 MB trở xuống.";
   }
   if (file.size === 0) {
-    return "Selected file is empty.";
+    return "Tệp đã chọn đang trống.";
   }
   return null;
 }
@@ -56,7 +56,7 @@ export async function presignUpload(
   });
 
   if (!res.ok) {
-    let message = "Failed to prepare upload";
+    let message = "Không thể chuẩn bị tải lên";
     try {
       const data = await res.json();
       if (data?.error) message = data.error;
@@ -80,7 +80,7 @@ export async function uploadToS3(uploadUrl: string, file: File): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new ApiError("Upload to storage failed. Please try again.", res.status);
+    throw new ApiError("Tải lên kho lưu trữ thất bại. Vui lòng thử lại.", res.status);
   }
 }
 
@@ -96,7 +96,7 @@ export async function attachImage(reportId: string, imageKey: string): Promise<v
   });
 
   if (!res.ok) {
-    let message = "Failed to attach image to report";
+    let message = "Không thể gắn ảnh vào tin báo";
     try {
       const data = await res.json();
       if (data?.error) message = data.error;

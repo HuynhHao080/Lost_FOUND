@@ -14,7 +14,7 @@ export async function GET() {
 
     return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Logout configuration error";
+    const message = error instanceof Error ? error.message : "Lỗi cấu hình đăng xuất";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

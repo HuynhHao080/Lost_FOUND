@@ -21,26 +21,26 @@ import { notifyLifecycleEvent } from "@/lib/notifications/emit";
 export async function POST(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   const { id } = await ctx.params;
 
   const parsed = ReportIdSchema.safeParse(id);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid report id" }, { status: 400 });
+    return NextResponse.json({ error: "Mã tin báo không hợp lệ" }, { status: 400 });
   }
 
   try {
     const report = await getReportById(parsed.data);
     if (!report) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy tin báo" }, { status: 404 });
     }
     if (report.userId !== user.sub) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
     if (report.status !== "MATCHED" || !report.matchedReportId) {
-      return NextResponse.json({ error: "This report is not currently matched" }, { status: 409 });
+      return NextResponse.json({ error: "Tin này hiện không ở trạng thái đã ghép" }, { status: 409 });
     }
 
     // Verify the counterpart points back before touching anything
@@ -60,7 +60,7 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
     await notifyLifecycleEvent("MATCH_RESET", report, counterpart);
 
     return NextResponse.json({
-      message: "Match removed",
+      message: "Đã hủy ghép",
       report: {
         id: report.id,
         status: "PENDING",
@@ -69,13 +69,13 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
   } catch (err) {
     if (err instanceof MatchConflictError) {
       return NextResponse.json(
-        { error: "The match was just changed by someone else" },
+        { error: "Ghép vừa được người khác thay đổi" },
         { status: 409 },
       );
     }
     if (err instanceof BrokenMatchReferenceError) {
       return NextResponse.json(
-        { error: "Match data is inconsistent; contact an administrator" },
+        { error: "Dữ liệu ghép không nhất quán; vui lòng liên hệ quản trị viên" },
         { status: 409 },
       );
     }
@@ -83,6 +83,6 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to remove match" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể hủy ghép" }, { status: 500 });
   }
 }

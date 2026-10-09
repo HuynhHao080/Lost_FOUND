@@ -6,7 +6,7 @@ export async function GET() {
     const authUrl = getAuthorizationUrl();
     return NextResponse.redirect(authUrl);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Authentication configuration error";
+    const message = error instanceof Error ? error.message : "Lỗi cấu hình đăng nhập";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

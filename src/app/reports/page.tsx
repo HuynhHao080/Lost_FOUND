@@ -1,8 +1,9 @@
 import { ReportsBrowser } from "@/components/reports/reports-browser";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Lost & Found — Browse Reports",
-  description: "Browse and search lost and found item reports",
+export const metadata: Metadata = {
+  title: "Tìm Đồ Thất Lạc — Xem tin báo",
+  description: "Xem và tìm kiếm tin báo đồ bị mất và đồ nhặt được",
 };
 
 export default function ReportsPage() {
@@ -11,9 +12,9 @@ export default function ReportsPage() {
       <main className="flex-1 container mx-auto py-8 px-4">
         <div className="max-w-6xl mx-auto space-y-6">
           <header>
-            <h1 className="text-3xl font-bold tracking-tight">Lost &amp; Found</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Tìm Đồ Thất Lạc</h1>
             <p className="mt-1 text-muted-foreground">
-              Browse lost and found reports. No account needed to look around.
+              Xem tin báo đồ bị mất và đồ nhặt được. Không cần tài khoản để xem.
             </p>
           </header>
 
@@ -23,7 +24,7 @@ export default function ReportsPage() {
 
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Lost &amp; Found. All rights reserved.
+          © {new Date().getFullYear()} Tìm Đồ Thất Lạc. Mọi quyền được bảo lưu.
         </div>
       </footer>
     </div>

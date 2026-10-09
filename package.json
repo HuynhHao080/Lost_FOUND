@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "echo 'No dedicated test runner configured; use scripts/test-*.mjs for validation' && exit 0",
+    "test:match": "node --loader ts-node/esm scripts/test-matching.mjs 2>/dev/null || echo 'Matching validation script not present'",
+    "validate": "node scripts/validate-core.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.1112.0",

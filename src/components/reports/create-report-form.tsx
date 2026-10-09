@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/uploads";
 import { ReportSchema, type ReportInput } from "@/lib/validations/report";
 import { Loader2, PlusCircle, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { categoryLabel } from "@/lib/i18n/vi";
 
 const CATEGORIES = [
   "Electronics",
@@ -53,7 +54,7 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
+export function CreateReportForm({ onCreatedAction }: { onCreatedAction?: () => void }) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -148,11 +149,11 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
           setSuccess(true);
           setForm(INITIAL_FORM);
           clearFile();
-          onCreated?.();
+          onCreatedAction?.();
           setApiError(
             uploadErr instanceof ApiError && uploadErr.status === 401
               ? "Report created, but your session expired before the image could be uploaded."
-              : "Report created, but the image upload failed. You can try again later.",
+              : "Không thể tải ảnh lên. Bạn có thể thử lại sau.",
           );
           return;
         }
@@ -162,14 +163,14 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
       setSuccess(true);
       setForm(INITIAL_FORM);
       clearFile();
-      onCreated?.();
+      onCreatedAction?.();
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        setApiError("Your session has expired. Please sign in again.");
+        setApiError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       } else if (err instanceof ApiError) {
         setApiError(err.message);
       } else {
-        setApiError("An unexpected error occurred. Please try again.");
+        setApiError("Đã xảy ra lỗi. Vui lòng thử lại.");
       }
     } finally {
       setSubmitting(false);
@@ -181,9 +182,9 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create a report</CardTitle>
+        <CardTitle>Tạo tin báo</CardTitle>
         <CardDescription>
-          Report a lost item or something you found so it can be matched with its owner.
+          Báo cáo đồ bị mất hoặc đồ nhặt được để có thể ghép với chủ nhân.
         </CardDescription>
       </CardHeader>
 
@@ -194,7 +195,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
             className="mb-4 flex items-start gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
           >
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>Report created successfully.</span>
+            <span>Tin báo đã được tạo thành công.</span>
           </div>
         )}
 
@@ -211,7 +212,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {/* Type */}
           <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Type</legend>
+            <legend className="text-sm font-medium">Loại tin</legend>
             <div className="flex gap-2">
               {(["LOST", "FOUND"] as const).map((t) => (
                 <button
@@ -228,7 +229,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
                       : "border-border text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  {t === "LOST" ? "I lost an item" : "I found an item"}
+                  {t === "LOST" ? "Báo đồ bị mất" : "Báo đồ nhặt được"}
                 </button>
               ))}
             </div>
@@ -237,13 +238,13 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
           {/* Title */}
           <div className="space-y-1.5">
             <Label htmlFor="title">
-              Title <span aria-hidden="true">*</span>
+              Tiêu đề <span aria-hidden="true">*</span>
             </Label>
             <Input
               id="title"
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
-              placeholder="e.g., Black MacBook Pro charger"
+              placeholder="VD: Sạc MacBook Pro màu đen"
               maxLength={200}
               disabled={busy}
               aria-invalid={!!errors.title}
@@ -258,12 +259,12 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Mô tả</Label>
             <textarea
               id="description"
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
-              placeholder="Add details like color, brand, contents..."
+              placeholder="Thêm chi tiết như màu sắc, nhãn hiệu, đồ bên trong..."
               rows={3}
               maxLength={2000}
               disabled={busy}
@@ -276,7 +277,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="category">
-                Category <span aria-hidden="true">*</span>
+                Danh mục <span aria-hidden="true">*</span>
               </Label>
               <select
                 id="category"
@@ -287,7 +288,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {categoryLabel(c)}
                   </option>
                 ))}
               </select>
@@ -295,7 +296,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dateOccurred">Date occurred</Label>
+              <Label htmlFor="dateOccurred">Ngày xảy ra</Label>
               <Input
                 id="dateOccurred"
                 type="date"
@@ -313,13 +314,13 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
           {/* Location */}
           <div className="space-y-1.5">
             <Label htmlFor="location">
-              Location <span aria-hidden="true">*</span>
+              Địa điểm <span aria-hidden="true">*</span>
             </Label>
             <Input
               id="location"
               value={form.location}
               onChange={(e) => update("location", e.target.value)}
-              placeholder="e.g., Library, 2nd floor study room"
+              placeholder="VD: Thư viện, phòng tự học tầng 2"
               maxLength={500}
               disabled={busy}
               aria-invalid={!!errors.location}
@@ -334,12 +335,12 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
 
           {/* Image (optional) */}
           <fieldset className="space-y-2" disabled={busy}>
-            <legend className="text-sm font-medium">Photo (optional)</legend>
+            <legend className="text-sm font-medium">Ảnh (không bắt buộc)</legend>
 
             {!file ? (
               <div className="space-y-1.5">
                 <Label htmlFor="image" className="sr-only">
-                  Select an image
+                  Chọn ảnh
                 </Label>
                 <Input
                   id="image"
@@ -349,7 +350,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
                   className="file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium"
                 />
                 <p className="text-xs text-muted-foreground">
-                  JPEG, PNG, or WebP · up to {formatBytes(MAX_FILE_SIZE)}
+                  JPEG, PNG hoặc WebP · tối đa {formatBytes(MAX_FILE_SIZE)}
                 </p>
               </div>
             ) : (
@@ -358,7 +359,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
                   // eslint-disable-next-line @next/next/no-img-element -- local blob preview
                   <img
                     src={previewUrl}
-                    alt={`Preview of ${file.name}`}
+                    alt={`Xem trước ảnh ${file.name}`}
                     className="h-16 w-16 rounded-md object-cover"
                   />
                 )}
@@ -368,12 +369,12 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
                   {uploadPhase === "uploading" && (
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-primary">
                       <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-                      Uploading...
+                      Đang tải lên...
                     </p>
                   )}
                   {uploadPhase === "done" && (
                     <p className="mt-1 text-xs text-green-700 dark:text-green-400">
-                      Upload complete
+                      Tải lên xong
                     </p>
                   )}
                 </div>
@@ -383,7 +384,7 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
                   size="icon-sm"
                   onClick={clearFile}
                   disabled={busy}
-                  aria-label="Remove selected image"
+                  aria-label="Xóa ảnh đã chọn"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
@@ -396,13 +397,13 @@ export function CreateReportForm({ onCreated }: { onCreated?: () => void }) {
           <Button type="submit" disabled={busy} className="w-full sm:w-auto">
             {busy ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                {uploadPhase === "uploading" ? "Uploading image..." : "Creating..."}
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {uploadPhase === "uploading" ? "Đang tải ảnh..." : "Đang tạo..."}
               </>
             ) : (
               <>
-                <PlusCircle className="h-4 w-4" aria-hidden="true" />
-                Create report
+                <PlusCircle className="h-4 w-4" />
+                Đăng tin
               </>
             )}
           </Button>

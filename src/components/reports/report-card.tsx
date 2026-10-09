@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Calendar, ImageIcon, CheckCircle2 } from "lucide-react";
+import { categoryLabel, statusLabel } from "@/lib/i18n/vi";
 
 /**
  * Status pill styles. Kept deliberately subtle: soft backgrounds, consistent
@@ -48,14 +49,14 @@ export function ReportCard({ report }: ReportCardProps) {
   const status = statusStyles[report.status] ?? statusStyles.PENDING;
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden">
+    <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
       {/* Image area — fixed aspect ratio, graceful fallback */}
       {showImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- presigned redirect endpoint, not a static asset
         <img
           src={`/api/reports/${report.id}/image`}
-          alt={`Photo of ${report.title}`}
-          className="w-full aspect-[4/3] object-cover"
+          alt={`Ảnh của ${report.title}`}
+          className="w-full aspect-4/3 object-cover"
           loading="lazy"
         />
       ) : (
@@ -70,12 +71,12 @@ export function ReportCard({ report }: ReportCardProps) {
       <CardHeader className="flex-none space-y-2">
         {/* Badges row — wraps cleanly without breaking layout */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant={isLost ? "destructive" : "default"}>{isLost ? "Lost" : "Found"}</Badge>
+          <Badge variant={isLost ? "destructive" : "default"}>{isLost ? "Đồ bị mất" : "Đồ nhặt được"}</Badge>
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}
           >
             {status.icon}
-            {report.status}
+            {statusLabel(report.status)}
           </span>
         </div>
 
@@ -85,7 +86,7 @@ export function ReportCard({ report }: ReportCardProps) {
       <CardContent className="flex flex-1 flex-col justify-between gap-3">
         <div className="space-y-2">
           {report.description && (
-            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2 break-words">
+            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2 wrap-break-word">
               {report.description}
             </p>
           )}
@@ -94,24 +95,24 @@ export function ReportCard({ report }: ReportCardProps) {
           <dl className="space-y-1.5 text-sm">
             <div className="flex items-start gap-1.5 text-muted-foreground">
               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <dt className="sr-only">Location</dt>
+              <dt className="sr-only">Địa điểm</dt>
               <dd className="min-w-0 flex-1 break-words">{report.location}</dd>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <dt className="sr-only">Date occurred</dt>
-              <dd>{report.dateOccurred || "Not specified"}</dd>
+              <dt className="sr-only">Thời gian xảy ra</dt>
+              <dd>{report.dateOccurred || "Chưa chỉ định"}</dd>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <dt className="sr-only">Category</dt>
-              <dd>{report.category}</dd>
+              <dt className="sr-only">Danh mục</dt>
+              <dd>{categoryLabel(report.category)}</dd>
             </div>
           </dl>
         </div>
 
         <p className="text-xs text-muted-foreground/80">
-          Reported{" "}
-          {new Date(report.createdAt).toLocaleDateString(undefined, {
+          Đăng ngày{" "}
+          {new Date(report.createdAt).toLocaleDateString("vi-VN", {
             year: "numeric",
             month: "short",
             day: "numeric",

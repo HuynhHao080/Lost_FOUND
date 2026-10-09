@@ -10,17 +10,17 @@ import { markAllNotificationsRead } from "@/lib/repositories/notification-reposi
 export async function POST() {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   try {
     const updated = await markAllNotificationsRead(user.sub);
-    return NextResponse.json({ message: "All notifications marked as read", updated });
+    return NextResponse.json({ message: "Đã đánh dấu tất cả thông báo là đã đọc", updated });
   } catch (err) {
     console.error("[POST /api/notifications/read-all] error:", {
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to update notifications" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể cập nhật thông báo" }, { status: 500 });
   }
 }

@@ -17,13 +17,22 @@ export async function GET(request: NextRequest) {
 
   const query = validateSearchQuery(url.searchParams);
   if (!query) {
-    return NextResponse.json({ error: "Invalid query parameters" }, { status: 400 });
+    return NextResponse.json({ error: "Tham số tìm kiếm không hợp lệ" }, { status: 400 });
+  }
+
+  let lastEvaluatedKey: Record<string, unknown> | undefined;
+  if (query.cursor) {
+    try {
+      lastEvaluatedKey = JSON.parse(decodeURIComponent(query.cursor));
+    } catch {
+      return NextResponse.json({ error: "Con trỏ phân trang không hợp lệ" }, { status: 400 });
+    }
   }
 
   try {
     validateDynamoConfig();
   } catch {
-    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi cấu hình máy chủ" }, { status: 500 });
   }
 
   try {
@@ -36,6 +45,7 @@ export async function GET(request: NextRequest) {
         search: query.search,
       },
       query.limit,
+      lastEvaluatedKey,
     );
 
     // Defensive: strip any internal attributes before responding.
@@ -51,6 +61,6 @@ export async function GET(request: NextRequest) {
       message: (err as { message?: string })?.message,
       table: REPORTS_TABLE,
     });
-    return NextResponse.json({ error: "Failed to search reports" }, { status: 500 });
+    return NextResponse.json({ error: "Không tìm được tin báo" }, { status: 500 });
   }
 }

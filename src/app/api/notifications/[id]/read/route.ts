@@ -12,28 +12,28 @@ import { markNotificationRead } from "@/lib/repositories/notification-repository
 export async function POST(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   const { id } = await ctx.params;
   if (!id) {
-    return NextResponse.json({ error: "Invalid notification id" }, { status: 400 });
+    return NextResponse.json({ error: "Mã thông báo không hợp lệ" }, { status: 400 });
   }
 
   try {
     const updated = await markNotificationRead(user.sub, id);
     if (!updated) {
       return NextResponse.json(
-        { error: "Notification not found or already read" },
+        { error: "Không tìm thấy thông báo hoặc đã được đọc" },
         { status: 404 },
       );
     }
-    return NextResponse.json({ message: "Marked as read" });
+    return NextResponse.json({ message: "Đã đánh dấu đã đọc" });
   } catch (err) {
     console.error("[POST /api/notifications/:id/read] error:", {
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to update notification" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể cập nhật thông báo" }, { status: 500 });
   }
 }

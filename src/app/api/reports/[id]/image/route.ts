@@ -17,24 +17,24 @@ export async function GET(
 
   const parsedId = ReportIdSchema.safeParse(id);
   if (!parsedId.success) {
-    return NextResponse.json({ error: "Invalid report id" }, { status: 400 });
+    return NextResponse.json({ error: "Mã tin báo không hợp lệ" }, { status: 400 });
   }
 
   try {
     validateS3Config();
   } catch {
-    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Lỗi cấu hình máy chủ" }, { status: 500 });
   }
 
   try {
     const report = await getReportById(parsedId.data);
     if (!report || !report.imageKey) {
-      return NextResponse.json({ error: "Image not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy ảnh" }, { status: 404 });
     }
 
     // Defensive: never presign a key outside this report's prefix
     if (!report.imageKey.startsWith(`reports/${report.id}/`)) {
-      return NextResponse.json({ error: "Image not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy ảnh" }, { status: 404 });
     }
 
     const url = await presignGetUrl(report.imageKey);
@@ -44,6 +44,6 @@ export async function GET(
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to load image" }, { status: 500 });
+    return NextResponse.json({ error: "Không tải được ảnh" }, { status: 500 });
   }
 }

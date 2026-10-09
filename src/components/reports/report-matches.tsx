@@ -13,12 +13,16 @@ import {
   type MatchItem,
 } from "@/lib/api/reports";
 import { Loader2, Sparkles, CheckCircle2, AlertTriangle, Inbox, ExternalLink } from "lucide-react";
+import { categoryLabel, matchLabelVi, matchReasonVi } from "@/lib/i18n/vi";
 
 /** Minimum score to allow confirming a match (mirrors server-side rule). */
 const CONFIRM_THRESHOLD = 60;
 
-/** Visual style per match strength label. */
+/** Visual style per match strength label (hỗ trợ cả tiếng Việt và tiếng Anh cũ). */
 const labelStyles: Record<string, string> = {
+  "Khớp cao": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  "Có thể khớp": "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  "Khớp yếu": "bg-muted text-muted-foreground",
   "High match": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
   "Possible match": "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
   "Weak match": "bg-muted text-muted-foreground",
@@ -30,10 +34,10 @@ const labelStyles: Record<string, string> = {
  */
 export function ReportMatches({
   reportId,
-  onMatchConfirmed,
+  onMatchConfirmedAction,
 }: {
   reportId: string;
-  onMatchConfirmed?: () => void;
+  onMatchConfirmedAction?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<MatchesResponse | null>(null);
@@ -65,7 +69,7 @@ export function ReportMatches({
       setData(result);
     } catch (err) {
       if (!openRef.current) return;
-      setError(err instanceof ApiError ? err.message : "Failed to find matches. Please try again.");
+      setError(err instanceof ApiError ? err.message : "Không tìm thấy tin khớp. Vui lòng thử lại.");
     } finally {
       if (openRef.current) setLoading(false);
     }
@@ -78,10 +82,12 @@ export function ReportMatches({
     try {
       await confirmReportMatch(reportId, matchedReportId);
       setConfirmedIds((prev) => [...prev, matchedReportId]);
-      onMatchConfirmed?.();
+      // Dispatch lifecycle event for notification bell refresh
+      window.dispatchEvent(new CustomEvent("lf:lifecycle"));
+      onMatchConfirmedAction?.();
     } catch (err) {
       setConfirmError(
-        err instanceof ApiError ? err.message : "Failed to confirm match. Please try again.",
+        err instanceof ApiError ? err.message : "Không thể xác nhận ghép. Vui lòng thử lại.",
       );
     } finally {
       setConfirmingId(null);
@@ -92,7 +98,7 @@ export function ReportMatches({
     return (
       <Button variant="outline" size="sm" onClick={handleFindMatches}>
         <Sparkles className="h-4 w-4" aria-hidden="true" />
-        Find possible matches
+        Tìm tin có thể khớp
       </Button>
     );
   }
@@ -105,7 +111,7 @@ export function ReportMatches({
           className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground"
         >
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Searching for possible matches...
+          Đang tìm các tin có thể khớp...
         </div>
       )}
 
@@ -122,7 +128,7 @@ export function ReportMatches({
       {!loading && !error && data && data.matches.length === 0 && (
         <div className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
           <Inbox className="h-4 w-4 shrink-0" aria-hidden="true" />
-          No possible matches found yet. Check again later as new reports come in.
+          Chưa thấy tin nào có thể khớp. Hãy quay lại sau khi có tin mới.
         </div>
       )}
 
@@ -135,9 +141,9 @@ export function ReportMatches({
               aria-hidden="true"
             />
             {data.matchingMode === "hybrid"
-              ? "Semantic + rule-based matching"
-              : "Rule-based matching only"}
-            · Higher scores mean more similar reports.
+              ? "Ghép theo ngữ nghĩa + quy tắc"
+              : "Chỉ ghép theo quy tắc"}
+            · Điểm càng cao, tin báo càng giống nhau.
           </p>
 
           <ul className="space-y-3">
@@ -162,14 +168,14 @@ export function ReportMatches({
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge variant={match.report.type === "LOST" ? "destructive" : "default"}>
-                            {match.report.type === "LOST" ? "Lost" : "Found"}
+                            {match.report.type === "LOST" ? "Đồ bị mất" : "Đồ nhặt được"}
                           </Badge>
                           <span
                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                              labelStyles[match.label] ?? labelStyles["Weak match"]
+                              labelStyles[match.label] ?? labelStyles["Khớp yếu"]
                             }`}
                           >
-                            {match.label}
+                            {matchLabelVi(match.label)}
                           </span>
                         </div>
                         {/* Prominent score */}
@@ -179,7 +185,7 @@ export function ReportMatches({
                               ? "text-foreground"
                               : "text-muted-foreground"
                           }`}
-                          aria-label={`Match score ${match.score} percent`}
+                          aria-label={`Điểm khớp ${match.score} phần trăm`}
                         >
                           {match.score}
                           <span className="text-xs font-semibold">%</span>
@@ -190,8 +196,8 @@ export function ReportMatches({
                     </CardHeader>
 
                     <CardContent className="space-y-2.5">
-                      <p className="break-words text-xs text-muted-foreground">
-                        {match.report.category} · {match.report.location}
+                      <p className="wrap-break-word text-xs text-muted-foreground">
+                        {categoryLabel(match.report.category)} · {match.report.location}
                         {match.report.dateOccurred && ` · ${match.report.dateOccurred}`}
                       </p>
 
@@ -206,7 +212,7 @@ export function ReportMatches({
                                 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400"
                                 aria-hidden="true"
                               />
-                              {reason}
+                              {matchReasonVi(reason)}
                             </li>
                           ))}
                         </ul>
@@ -217,7 +223,7 @@ export function ReportMatches({
                         {isConfirmed ? (
                           <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            Match confirmed
+                            Đã xác nhận khớp
                           </p>
                         ) : confirmingId === match.report.id ? (
                           // In-flight: replaces the button entirely so a rapid
@@ -228,7 +234,7 @@ export function ReportMatches({
                             className="flex items-center gap-1.5 text-xs text-muted-foreground"
                           >
                             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                            Confirming...
+                            Đang xác nhận...
                           </p>
                         ) : canConfirm ? (
                           <Button
@@ -237,16 +243,16 @@ export function ReportMatches({
                             disabled={confirmingId !== null}
                             className="w-full sm:w-auto"
                           >
-                            Confirm match
+                            Xác nhận khớp
                           </Button>
                         ) : !match.report.status || match.report.status !== "PENDING" ? (
                           <p className="text-xs text-muted-foreground">
-                            This report is no longer available for matching.
+                            Tin này không còn khả dụng để ghép.
                           </p>
                         ) : (
                           <p className="text-xs text-muted-foreground">
-                            Score is below {CONFIRM_THRESHOLD}% — the details differ too much to
-                            confirm automatically.
+                            Điểm dưới {CONFIRM_THRESHOLD}% — chi tiết khác nhau quá nhiều để
+                            tự động xác nhận.
                           </p>
                         )}
 
@@ -254,7 +260,7 @@ export function ReportMatches({
                           href={`/reports/${match.report.id}`}
                           className="inline-flex shrink-0 items-center justify-center gap-1 text-xs text-primary hover:underline"
                         >
-                          View details
+                          Xem chi tiết
                           <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </Link>
                       </div>

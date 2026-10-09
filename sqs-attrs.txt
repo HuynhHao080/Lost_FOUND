@@ -1,0 +1,1 @@
+Policy={"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"events.amazonaws.com"},"Action":["sqs:SendMessage","sqs:GetQueueAttributes","sqs:GetQueueUrl"],"Resource":"arn:aws:sqs:us-east-1:629380420098:LostFound-Notifications"}]}

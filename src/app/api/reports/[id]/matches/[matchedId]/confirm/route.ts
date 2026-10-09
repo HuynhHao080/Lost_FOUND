@@ -30,7 +30,7 @@ export async function POST(
   // Authentication
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   const { id, matchedId } = await ctx.params;
@@ -39,12 +39,12 @@ export async function POST(
   const sourceParsed = ReportIdSchema.safeParse(id);
   const matchedParsed = ReportIdSchema.safeParse(matchedId);
   if (!sourceParsed.success || !matchedParsed.success) {
-    return NextResponse.json({ error: "Invalid report id" }, { status: 400 });
+    return NextResponse.json({ error: "Mã tin báo không hợp lệ" }, { status: 400 });
   }
 
   // Reject self-confirmation
   if (sourceParsed.data === matchedParsed.data) {
-    return NextResponse.json({ error: "A report cannot be matched with itself" }, { status: 400 });
+    return NextResponse.json({ error: "Không thể tự ghép một tin báo với chính nó" }, { status: 400 });
   }
 
   try {
@@ -54,21 +54,21 @@ export async function POST(
     ]);
 
     if (!source) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy tin báo" }, { status: 404 });
     }
     if (!matched) {
-      return NextResponse.json({ error: "Matched report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy tin báo được ghép" }, { status: 404 });
     }
 
     // Authorization: caller must own the SOURCE report
     if (source.userId !== user.sub) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     // Opposite types only
     if (source.type === matched.type) {
       return NextResponse.json(
-        { error: "Only LOST and FOUND reports can be matched" },
+        { error: "Chỉ có thể ghép tin Đồ bị mất với tin Đồ nhặt được" },
         { status: 400 },
       );
     }
@@ -76,7 +76,7 @@ export async function POST(
     // Both must be PENDING
     if (source.status !== "PENDING" || matched.status !== "PENDING") {
       return NextResponse.json(
-        { error: "One of the reports is no longer available for matching" },
+        { error: "Một trong hai tin đã không còn khả dụng để ghép" },
         { status: 409 },
       );
     }
@@ -87,7 +87,7 @@ export async function POST(
     if (score < CONFIRM_THRESHOLD) {
       return NextResponse.json(
         {
-          error: `These reports do not meet the confirmation threshold (score ${score}, minimum ${CONFIRM_THRESHOLD})`,
+          error: `Hai tin này chưa đạt ngưỡng xác nhận (điểm ${score}, tối thiểu ${CONFIRM_THRESHOLD})`,
         },
         { status: 400 },
       );
@@ -100,7 +100,7 @@ export async function POST(
     await notifyLifecycleEvent("MATCH_CONFIRMED", source, matched);
 
     return NextResponse.json({
-      message: "Match confirmed",
+      message: "Đã xác nhận ghép",
       match: {
         reportId: source.id,
         matchedReportId: matched.id,
@@ -111,7 +111,7 @@ export async function POST(
   } catch (err) {
     if (err instanceof MatchConflictError) {
       return NextResponse.json(
-        { error: "One of the reports was just matched by someone else" },
+        { error: "Một trong hai tin vừa được người khác ghép" },
         { status: 409 },
       );
     }
@@ -119,6 +119,6 @@ export async function POST(
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to confirm match" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể xác nhận ghép" }, { status: 500 });
   }
 }

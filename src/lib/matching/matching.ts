@@ -141,7 +141,7 @@ function categoryScore(
   b: MatchableReport,
 ): { points: number; reason?: string } {
   if (a.category === b.category) {
-    return { points: 35, reason: "Same category" };
+    return { points: 35, reason: "Cùng danh mục" };
   }
   return { points: 0 };
 }
@@ -152,7 +152,7 @@ function locationScore(
 ): { points: number; reason?: string } {
   const same = normalizeLocation(a.location) === normalizeLocation(b.location);
   if (same && a.location.trim().length > 0) {
-    return { points: 30, reason: "Same location" };
+    return { points: 30, reason: "Cùng địa điểm" };
   }
   return { points: 0 };
 }
@@ -172,10 +172,10 @@ function dateScore(a: MatchableReport, b: MatchableReport): { points: number; re
 
   const diffDays = Math.abs(dateA.getTime() - dateB.getTime()) / DAY_MS;
 
-  if (diffDays < 1) return { points: 20, reason: "Occurred on the same date" };
-  if (diffDays <= 1) return { points: 15, reason: "Occurred within 1 day of each other" };
-  if (diffDays <= 3) return { points: 10, reason: "Occurred within 3 days of each other" };
-  if (diffDays <= 7) return { points: 5, reason: "Occurred within 7 days of each other" };
+  if (diffDays < 1) return { points: 20, reason: "Xảy ra cùng ngày" };
+  if (diffDays <= 1) return { points: 15, reason: "Xảy ra trong vòng 1 ngày" };
+  if (diffDays <= 3) return { points: 10, reason: "Xảy ra trong vòng 3 ngày" };
+  if (diffDays <= 7) return { points: 5, reason: "Xảy ra trong vòng 7 ngày" };
   return { points: 0 };
 }
 
@@ -197,9 +197,9 @@ function textScore(a: MatchableReport, b: MatchableReport): { points: number; re
   }
   const overlapRatio = overlap / Math.min(wordsA.size, wordsB.size);
 
-  if (overlapRatio >= 0.5) return { points: 15, reason: "Strong description similarity" };
-  if (overlapRatio >= 0.25) return { points: 10, reason: "Moderate description similarity" };
-  if (overlapRatio > 0) return { points: 5, reason: "Small description similarity" };
+  if (overlapRatio >= 0.5) return { points: 15, reason: "Mô tả rất giống nhau" };
+  if (overlapRatio >= 0.25) return { points: 10, reason: "Mô tả khá giống nhau" };
+  if (overlapRatio > 0) return { points: 5, reason: "Mô tả hơi giống nhau" };
   return { points: 0 };
 }
 
@@ -219,9 +219,9 @@ const SEMANTIC_WEIGHT = 0.4;
  * How semantic similarity contributed, for reason strings.
  */
 function semanticReason(similarity: number): string {
-  if (similarity >= 0.8) return "Strong semantic similarity";
-  if (similarity >= 0.6) return "Moderate semantic similarity";
-  return "Some semantic similarity";
+  if (similarity >= 0.8) return "Nội dung rất tương đồng";
+  if (similarity >= 0.6) return "Nội dung khá tương đồng";
+  return "Nội dung hơi tương đồng";
 }
 
 /**
@@ -280,11 +280,11 @@ export function calculateMatchScore(
   ).length;
   if (category.points > 0 && corroboratingSignals === 0) {
     score -= 10;
-    reasons.push("Different location and timing");
+    reasons.push("Khác địa điểm và thời gian");
   } else if (location.points === 0 && date.points > 0 && text.points > 0) {
     // Date + text agree but the place differs — plausible but less certain
     score -= 5;
-    reasons.push("Different locations reported");
+    reasons.push("Địa điểm báo khác nhau");
   }
 
   return { score: Math.max(0, Math.min(score, 100)), reasons };
@@ -294,7 +294,7 @@ export function calculateMatchScore(
  * Human-readable strength label for a score.
  */
 export function matchLabel(score: number): string {
-  if (score >= 80) return "High match";
-  if (score >= 60) return "Possible match";
-  return "Weak match";
+  if (score >= 80) return "Khớp cao";
+  if (score >= 60) return "Có thể khớp";
+  return "Khớp yếu";
 }

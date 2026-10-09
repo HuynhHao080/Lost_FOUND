@@ -28,7 +28,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   // Authentication
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
   }
 
   const { id } = await ctx.params;
@@ -37,18 +37,18 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
     const report = await getReportById(id);
 
     if (!report) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy tin báo" }, { status: 404 });
     }
 
     // Authorization: ownership checked server-side; userId never comes from the client
     if (report.userId !== user.sub) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     // Lifecycle: only active reports can look for matches
     if (report.status !== "PENDING") {
       return NextResponse.json(
-        { error: "Only PENDING reports can search for matches" },
+        { error: "Chỉ tin báo ở trạng thái Đang tìm kiếm mới có thể tìm khớp" },
         { status: 409 },
       );
     }
@@ -75,6 +75,6 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
       name: (err as { name?: string })?.name,
       message: (err as { message?: string })?.message,
     });
-    return NextResponse.json({ error: "Failed to find matches" }, { status: 500 });
+    return NextResponse.json({ error: "Không tìm được tin khớp" }, { status: 500 });
   }
 }

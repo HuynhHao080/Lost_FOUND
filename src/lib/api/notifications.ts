@@ -5,7 +5,7 @@
 
 import { ApiError } from "./reports";
 
-export type NotificationType = "MATCH_CONFIRMED" | "MATCH_RESET" | "REPORT_RESOLVED";
+export type NotificationType = "MATCH_CONFIRMED" | "MATCH_RESET" | "REPORT_RESOLVED" | "IMAGE_UPLOADED";
 
 export interface AppNotification {
   id: string;
@@ -33,10 +33,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const fallbacks: Record<number, string> = {
-      401: "Your session has expired. Please sign in again.",
-      500: "Something went wrong. Please try again later.",
+      401: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      500: "Đã xảy ra lỗi. Vui lòng thử lại sau.",
     };
-    let message = fallbacks[res.status] ?? "Request failed";
+    let message = fallbacks[res.status] ?? "Yêu cầu thất bại";
     try {
       const data = await res.json();
       if (data?.error) message = data.error;
